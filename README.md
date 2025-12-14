@@ -1,0 +1,2 @@
+# MODERNIZACI-N-DE-EXHIBICIONES-INTERACTIVAS-MEDIANTE-TECNOLOG-AS-EMBEBIDAS
+Tres ingenieros mecatrónicos conforman el equipo técnico responsable del proyecto de modernización de las exhibiciones interactivas del Museo Papagayo. Su trabajo colaborativo se centra en la renovación tecnológica y funcional de los módulos expositivos. Consta de Esquemáticos electrónicos de conexiones, diseño de PCB y 3D así como la programación.
