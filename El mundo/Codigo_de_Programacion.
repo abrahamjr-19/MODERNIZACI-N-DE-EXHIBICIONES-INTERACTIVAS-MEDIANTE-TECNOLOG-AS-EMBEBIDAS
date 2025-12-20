@@ -1,0 +1,64 @@
+// ==== CONFIGURACIÓN ====
+
+// Botones (activo en LOW)
+const int buttons[] = {19, 16, 17, 18};
+const int resetButton = 4;
+
+// Torretas LED
+const int leds[] = {13, 12, 14, 27};
+
+const int numTorretas = 4;
+bool locked = false;
+
+void setup() {
+
+  // Configurar botones con pull-up interno
+  for (int i = 0; i < numTorretas; i++) {
+    pinMode(buttons[i], INPUT_PULLUP);
+  }
+  pinMode(resetButton, INPUT_PULLUP);
+
+  // Configurar salidas
+  for (int i = 0; i < numTorretas; i++) {
+    pinMode(leds[i], OUTPUT);
+    digitalWrite(leds[i], LOW);
+  }
+}
+
+void loop() {
+
+  // Botón de reset (activo en LOW)
+  if (digitalRead(resetButton) == LOW) {
+    resetSystem();
+  }
+
+  // Si ya hay una torreta activa, no se permite otra
+  if (locked) return;
+
+  // Revisar botones 1 a 4
+  for (int i = 0; i < numTorretas; i++) {
+    if (digitalRead(buttons[i]) == LOW) {
+      activateTorreta(i);
+      break;
+    }
+  }
+}
+
+void activateTorreta(int index) {
+  // Apagar todas por seguridad
+  for (int i = 0; i < numTorretas; i++) {
+    digitalWrite(leds[i], LOW);
+  }
+
+  // Encender solo la correspondiente
+  digitalWrite(leds[index], HIGH);
+  locked = true;  // Bloquear el sistema
+}
+
+void resetSystem() {
+  // Apagar todas las torretas
+  for (int i = 0; i < numTorretas; i++) {
+    digitalWrite(leds[i], LOW);
+  }
+  locked = false;
+}
