@@ -1,2 +1,3 @@
-# MODERNIZACI-N-DE-EXHIBICIONES-INTERACTIVAS-MEDIANTE-TECNOLOG-AS-EMBEBIDAS
+# MODERNIZACION_DE_EXHIBICIONES_INTERACTIVAS_MEDIANTE_TECNOLOGIAS_EMBEBIDAS
 Tres ingenieros mecatrónicos conforman el equipo técnico responsable del proyecto de modernización de las exhibiciones interactivas del Museo Papagayo. Abraham Jimenez Ruiz, Raul Antonio Damian Acopa y Oscar Antonio Bocanegran Hernandez. Su trabajo colaborativo se centra en la renovación tecnológica y funcional de los módulos expositivos. Consta de Esquemáticos electrónicos de conexiones, diseño de PCB y 3D así como la programación.
+Todos los documentos subidos son propiedad de los creadores intelectuales, para ser uso de ellos se necesita realizar un permiso.
