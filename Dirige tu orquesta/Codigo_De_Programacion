@@ -1,0 +1,144 @@
+//Este codigo es propiedad de los ingenieros; Abraham Jimenez ruiz, Raul Antonio Damian Acopa,Oscar Antonio bocanegra hernandez
+#include <HardwareSerial.h>
+
+// --- MP3-TF-16P ---
+HardwareSerial MP3(2);
+
+// Pines de entrada (sensores opticos)
+const int inputs[6]  = {15, 16, 17, 18, 19, 21};
+// Pines de salida (Lamparas enfrente)
+const int outputs[6] = {13, 12, 14, 26, 27, 25};
+
+// Tiempo requerido de presión
+const unsigned long pressRequired = 1000;
+
+// Tiempo de activación fija
+const unsigned long holdTime = 13800;
+
+// Control por botón y LED
+unsigned long pressStart[6] = {0};
+unsigned long ledStart[6]   = {0};
+bool ledActive[6]           = {false};
+bool inUse = false;
+
+// Control del parpadeo 2 Hz
+unsigned long blinkTimer = 0;
+bool blinkState = false;
+
+// ----------------------------------------------------
+// Enviar comando al módulo MP3
+// ----------------------------------------------------
+void sendCommand(uint8_t cmd, uint16_t param) {
+  uint8_t packet[10];
+
+  packet[0] = 0x7E;
+  packet[1] = 0xFF;
+  packet[2] = 0x06;
+  packet[3] = cmd;
+  packet[4] = 0x00; // No feedback
+  packet[5] = (uint8_t)(param >> 8);
+  packet[6] = (uint8_t)(param & 0xFF);
+
+  uint16_t sum = 0 - (packet[1] + packet[2] + packet[3] + packet[4] + packet[5] + packet[6]);
+  packet[7] = (uint8_t)(sum >> 8);
+  packet[8] = (uint8_t)(sum & 0xFF);
+  packet[9] = 0xEF;
+
+  MP3.write(packet, 10);
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  MP3.begin(9600, SERIAL_8N1, 22, 23);
+  delay(1000);
+  sendCommand(0x0F, 0);  // seleccionar tarjeta SD
+  delay(500);
+
+  for (int i = 0; i < 6; i++)
+    pinMode(inputs[i], INPUT_PULLDOWN);
+
+  for (int i = 0; i < 6; i++) {
+    pinMode(outputs[i], OUTPUT);
+    digitalWrite(outputs[i], LOW);
+  }
+}
+
+void loop() {
+  unsigned long now = millis();
+
+  // 1. Actualizar LEDs activos (apagarlos si se cumple el tiempo)
+  inUse = false;
+  for (int i = 0; i < 6; i++) {
+    if (ledActive[i]) {
+      inUse = true;
+      if (now - ledStart[i] >= holdTime) {
+        ledActive[i] = false;
+        digitalWrite(outputs[i], LOW);
+        Serial.printf("LED %d terminó su ciclo.\n", i + 1);
+      }
+    }
+  }
+
+  // 2. Parpadeo 2 Hz
+  if (now - blinkTimer >= 250) {
+    blinkTimer = now;
+    blinkState = !blinkState;
+  }
+
+  // 3. Leer botones
+  for (int i = 0; i < 6; i++) {
+    bool pressed = digitalRead(inputs[i]) == HIGH;
+
+    if (pressed) {
+      if (pressStart[i] == 0)
+        pressStart[i] = now;
+
+      if (now - pressStart[i] >= pressRequired) {
+
+        // --- SI EL SISTEMA ESTÁ LIBRE → activar LED + música ---
+        if (!inUse) {
+          if (!ledActive[i]) {
+            ledActive[i] = true;
+            ledStart[i] = now;
+
+            digitalWrite(outputs[i], HIGH);
+            Serial.printf("LED %d activado.\n", i + 1);
+
+            // reproducir track correspondiente (1–6)
+            // --- GENERAR MÁSCARA DE BOTONES ACTIVOS POR ≥1 SEGUNDO ---
+int mask = 0;
+
+for (int j = 0; j < 6; j++) {
+  if (pressStart[j] != 0 && (now - pressStart[j] >= pressRequired)) {
+    // Botón j también lleva 1 segundo presionado
+    mask |= (1 << j);  // genera exactamente 1,2,4,8,16,32
+  }
+}
+
+if (mask != 0) {
+  Serial.printf("Reproduciendo track %d\n", mask);
+  sendCommand(0x03, mask);
+}
+          }
+        }
+
+        // --- SI EL SISTEMA ESTÁ OCUPADO ---
+        else {
+          if (!ledActive[i]) {
+            digitalWrite(outputs[i], blinkState ? HIGH : LOW);
+          }
+        }
+      }
+    }
+
+    else {
+      pressStart[i] = 0;
+
+      if (!ledActive[i])
+        digitalWrite(outputs[i], LOW);
+    }
+  }
+}
+
+//Este codigo es propiedad de los ingenieros; Abraham Jimenez ruiz, Raul Antonio Damian Acopa,Oscar Antonio bocanegra Hernandez
